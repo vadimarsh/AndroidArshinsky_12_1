@@ -1,0 +1,2 @@
+include ':app'
+rootProject.name='AndroidArshinsky_12_2'

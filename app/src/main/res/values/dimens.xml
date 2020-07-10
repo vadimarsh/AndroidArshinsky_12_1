@@ -1,0 +1,7 @@
+<resources>
+    <dimen name="app_bar_height">180dp</dimen>
+    <dimen name="image_w">86dp</dimen>
+    <dimen name="image_h">86dp</dimen>
+    <dimen name="image_margin">4dp</dimen>
+    <dimen name="title_text">18sp</dimen>
+</resources>

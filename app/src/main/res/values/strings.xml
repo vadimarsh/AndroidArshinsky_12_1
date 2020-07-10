@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">AndroidArshinsky_12_2</string>
+    <string name="topics">Проектирование интерфейса\n\nКомпоненты View. Иерархия Views\n\nВерстка графического интерфейса в Android\n\nAndroid styles</string>
+    <string name="titles">Система мониторинга здоровья\n\nСтраны-города-улицы\n\nВзаимоисключающие CheckBox\n\nСроки задачи\n\nИнтерфейс калькулятора\n\nДействия калькулятора\n\nПереключение цветов в приложении</string>
+    <string name="delete_but">Удалить</string>
+</resources>
