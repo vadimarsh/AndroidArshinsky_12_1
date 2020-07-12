@@ -134,9 +134,7 @@ public class MainActivity extends AppCompatActivity {
         if (isExternalStorageWritable()) {
             File contentFile = new File(getApplicationContext().getExternalFilesDir(null), "samples.txt");
 
-            FileReader fileReader;
-            try {
-                fileReader = new FileReader(contentFile);
+            try (FileReader fileReader = new FileReader(contentFile)){
                 String readedSamples = new BufferedReader(fileReader).readLine();
                 if (readedSamples.length() > 0) {
                     String[] samples = readedSamples.split(";");
@@ -147,8 +145,6 @@ public class MainActivity extends AppCompatActivity {
                                         R.mipmap.delete_foreground))));
                     }
                 }
-
-                fileReader.close();
             } catch (Exception e) {
                 Toast.makeText(MainActivity.this,
                         "Файл пуст, будут установлены дефолтные значения",
