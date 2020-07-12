@@ -1,7 +1,5 @@
 package com.example.androidarshinsky_12_2;
 
-import android.Manifest;
-import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Environment;
@@ -10,10 +8,8 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
@@ -27,8 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-    public static final int REQUEST_CODE_PERMISSION_READ_STORAGE = 10;
-    public static final int REQUEST_CODE_PERMISSION_WRITE_STORAGE = 11;
+
     private ItemsDataAdapter adapter;
     private List<Drawable> images = new ArrayList<>();
 
@@ -39,17 +34,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         init();
-        int permissionStatus = ContextCompat.checkSelfPermission(MainActivity.this,
-                Manifest.permission.READ_EXTERNAL_STORAGE);
-
-        if (permissionStatus == PackageManager.PERMISSION_GRANTED) {
-            loadContentFromFile();
-        } else {
-            ActivityCompat.requestPermissions(MainActivity.this,
-                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                    REQUEST_CODE_PERMISSION_READ_STORAGE);
-        }
-
+        loadContentFromFile();
         ExtendedFloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -60,61 +45,19 @@ public class MainActivity extends AppCompatActivity {
                         "Аршинский В.Л.",
                         (ContextCompat.getDrawable(MainActivity.this,
                                 R.mipmap.delete_foreground))));
-                callToSave();
+                saveContentToFile();
             }
         });
     }
 
-    public void callToSave() {
-        int permissionStatus = ContextCompat.checkSelfPermission(MainActivity.this,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE);
-
-        if (permissionStatus == PackageManager.PERMISSION_GRANTED) {
-            saveContentToFile();
-        } else {
-            ActivityCompat.requestPermissions(MainActivity.this,
-                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                    REQUEST_CODE_PERMISSION_WRITE_STORAGE);
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        switch (requestCode) {
-
-            case REQUEST_CODE_PERMISSION_READ_STORAGE:
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-                    loadContentFromFile();
-                } else {
-                    Toast.makeText(MainActivity.this,
-                            "В доступе отказано, будут установлены дефолтные значения",
-                            Toast.LENGTH_SHORT).show();
-                    putDataInApapter();
-                }
-                return;
-            case REQUEST_CODE_PERMISSION_WRITE_STORAGE:
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-                    saveContentToFile();
-                } else {
-                    Toast.makeText(MainActivity.this,
-                            "Запрещено",
-                            Toast.LENGTH_SHORT).show();
-                }
-                return;
-        }
-    }
 
     private void saveContentToFile() {
 
         if (isExternalStorageWritable()) {
             File contentFile = new File(getApplicationContext().getExternalFilesDir(null), "samples.txt");
-            FileWriter fileWriter;
-            try {
-                fileWriter = new FileWriter(contentFile, false);
+
+            try (FileWriter fileWriter = new FileWriter(contentFile, false)) {
+
                 StringBuilder sb = new StringBuilder("");
                 for (int i = 0; i < adapter.getCount(); i++) {
                     DataItem item = adapter.getItem(i);
@@ -122,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 String s = sb.toString();
                 fileWriter.append(s);
-                fileWriter.close();
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -134,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
         if (isExternalStorageWritable()) {
             File contentFile = new File(getApplicationContext().getExternalFilesDir(null), "samples.txt");
 
-            try (FileReader fileReader = new FileReader(contentFile)){
+            try (FileReader fileReader = new FileReader(contentFile)) {
                 String readedSamples = new BufferedReader(fileReader).readLine();
                 if (readedSamples.length() > 0) {
                     String[] samples = readedSamples.split(";");
@@ -148,8 +91,9 @@ public class MainActivity extends AppCompatActivity {
             } catch (Exception e) {
                 Toast.makeText(MainActivity.this,
                         "Файл пуст, будут установлены дефолтные значения",
-                        Toast.LENGTH_LONG).show();
+                        Toast.LENGTH_SHORT).show();
                 putDataInApapter();
+                saveContentToFile();
             }
 
         }
@@ -162,7 +106,12 @@ public class MainActivity extends AppCompatActivity {
 
         fillImages();
 
-        adapter = new ItemsDataAdapter(this, null);
+        adapter = new ItemsDataAdapter(this, null, new DeleteClickListener() {
+            @Override
+            public void onDeleteClicked() {
+                MainActivity.this.saveContentToFile();
+            }
+        });
         listView.setAdapter(adapter);
         listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
@@ -172,7 +121,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        //putDataInApapter();
     }
 
     private void showItemData(int position) {
